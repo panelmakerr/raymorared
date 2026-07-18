@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import Header from './components/Header'
 import Hero from './components/Hero'
@@ -30,11 +30,15 @@ const INITIAL_FILTERS = {
 function Loader() {
   return (
     <div className="fixed inset-0 bg-gray-900 flex items-center justify-center z-50">
-      <div className="text-center">
-        <div className="w-16 h-16 mx-auto mb-4 bg-white rounded-2xl flex items-center justify-center animate-bounce">
-          <span className="text-2xl font-bold text-gray-900">S</span>
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative w-16 h-16">
+          <div className="absolute inset-0 border-4 border-white/10 rounded-full" />
+          <div className="absolute inset-0 border-4 border-transparent border-t-white rounded-full animate-spin" />
+          <div className="absolute inset-2 bg-white rounded-full flex items-center justify-center">
+            <span className="text-xl font-bold text-gray-900">S</span>
+          </div>
         </div>
-        <p className="text-white/50 text-sm">Loading...</p>
+        <p className="text-white/50 text-sm tracking-wide">Loading...</p>
       </div>
     </div>
   )
@@ -66,7 +70,7 @@ export default function App() {
   if (loading) return <Loader />
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white selection:bg-gray-900 selection:text-white">
       <Header
         cartCount={cart.count}
         onCartClick={() => cart.setIsOpen(true)}
@@ -79,17 +83,12 @@ export default function App() {
         <Hero />
         <Features />
 
-        <section id="products" className="py-16 md:py-20 bg-white">
+        <section id="products" className="py-16 md:py-24 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-8 items-start">
               <FilterBar filters={filters} onFilterChange={setFilters} />
-              <div className="flex-1 min-w-0">
-                <Products
-                  filters={filters}
-                  currency={currency}
-                  onProductSelect={selectProduct}
-                  onAddToCart={cart.addItem}
-                />
+              <div className="min-w-0">
+                <Products filters={filters} currency={currency} onProductSelect={selectProduct} onAddToCart={cart.addItem} />
               </div>
             </div>
           </div>
@@ -103,32 +102,15 @@ export default function App() {
 
       <Footer />
 
-      <CartSidebar
-        items={cart.items}
-        total={cart.total}
-        currency={currency}
-        onUpdateQuantity={cart.updateQuantity}
-        onRemove={cart.removeItem}
-        onCheckout={() => { cart.setIsOpen(false); setShowCheckout(true) }}
-        onClose={() => cart.setIsOpen(false)}
-        isOpen={cart.isOpen}
-      />
+      <CartSidebar items={cart.items} total={cart.total} currency={currency} onUpdateQuantity={cart.updateQuantity} onRemove={cart.removeItem}
+        onCheckout={() => { cart.setIsOpen(false); setShowCheckout(true) }} onClose={() => cart.setIsOpen(false)} isOpen={cart.isOpen} />
 
       <AnimatePresence>
-        {selectedProduct && (
-          <ProductModal
-            product={selectedProduct}
-            currency={currency}
-            onAddToCart={cart.addItem}
-            onClose={() => setSelectedProduct(null)}
-          />
-        )}
+        {selectedProduct && <ProductModal product={selectedProduct} currency={currency} onAddToCart={cart.addItem} onClose={() => setSelectedProduct(null)} />}
       </AnimatePresence>
-
       <AnimatePresence>
         {showCheckout && <Checkout total={cart.total} currency={currency} onClose={() => setShowCheckout(false)} />}
       </AnimatePresence>
-
       <AnimatePresence>
         {showSearch && <SmartSearch onSelect={selectProduct} onClose={closeSearch} />}
       </AnimatePresence>
