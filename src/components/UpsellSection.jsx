@@ -1,70 +1,34 @@
 import { motion } from 'framer-motion'
-import { staggerContainer, staggerItem } from '../utils/animations'
 import { convertPrice } from '../utils/currency'
 import { products } from '../utils/data'
 
-export default function UpsellSection({ currentProduct, currency, onAddToCart }) {
-  const recommendations = products
-    .filter(p => p.id !== currentProduct?.id)
-    .sort(() => Math.random() - 0.5)
-    .slice(0, 4)
+const sc = { hidden: { opacity: 0 }, visible: { opacity: 1, transition: { staggerChildren: 0.1 } } }
+const si = { hidden: { opacity: 0, y: 30 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5 } } }
+
+export default function UpsellSection({ currency, onAddToCart }) {
+  const recs = products.sort(() => Math.random() - 0.5).slice(0, 4)
 
   return (
     <section className="py-20 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.7 }}
-          className="text-center mb-12"
-        >
+        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-12">
           <span className="text-sm font-medium text-gray-500 uppercase tracking-wider">You May Also Like</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight mt-2">
-            Complete Your Look
-          </h2>
-          <p className="mt-4 text-gray-600 max-w-2xl mx-auto">
-            Customers who viewed this also loved these products
-          </p>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight mt-2">Complete Your Look</h2>
         </motion.div>
-
-        <motion.div
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {recommendations.map((product) => (
-            <motion.div
-              key={product.id}
-              variants={staggerItem}
-              className="group cursor-pointer"
-            >
-              <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-4 relative">
+        <motion.div variants={sc} initial="hidden" whileInView="visible" viewport={{ once: true }} className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+          {recs.map((p) => (
+            <motion.div key={p.id} variants={si} className="group cursor-pointer">
+              <div className="aspect-square bg-gray-100 rounded-2xl overflow-hidden mb-3 relative">
                 <div className="w-full h-full flex items-center justify-center">
-                  <div
-                    className="w-20 h-20 rounded-2xl"
-                    style={{ backgroundColor: product.colors[0].hex }}
-                  />
+                  <div className="w-20 h-20 rounded-2xl transition-transform group-hover:scale-110" style={{ backgroundColor: p.colors[0].hex }} />
                 </div>
-                <motion.button
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  onClick={() => onAddToCart(product)}
-                  className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm text-gray-900 text-sm font-medium py-2.5 rounded-xl opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 shadow-lg"
-                >
-                  Quick Add
-                </motion.button>
+                <button onClick={() => onAddToCart(p)} className="absolute bottom-3 left-3 right-3 bg-gray-900 text-white text-sm font-medium py-2.5 rounded-xl opacity-0 group-hover:opacity-100 transition-all duration-300">Quick Add</button>
               </div>
-              <h3 className="text-sm font-medium text-gray-900 truncate">{product.name}</h3>
-              <p className="text-xs text-gray-500 mt-1">{product.category}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-base font-semibold text-gray-900">{convertPrice(product.price, currency)}</span>
-                {product.originalPrice && (
-                  <span className="text-sm text-gray-400 line-through">{convertPrice(product.originalPrice, currency)}</span>
-                )}
+              <h3 className="text-sm font-medium text-gray-900 truncate">{p.name}</h3>
+              <p className="text-xs text-gray-500 mt-0.5">{p.category}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-sm font-bold text-gray-900">{convertPrice(p.price, currency)}</span>
+                {p.originalPrice && <span className="text-xs text-gray-400 line-through">{convertPrice(p.originalPrice, currency)}</span>}
               </div>
             </motion.div>
           ))}
