@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from 'react'
 import { motion, useScroll, useTransform, useSpring, useMotionValue } from 'framer-motion'
+import { useCountUp, useTypewriter } from '../hooks/useAnimations'
 
 function MagneticBtn({ children, className, href }) {
   const ref = useRef(null)
@@ -34,6 +35,22 @@ function FloatingOrb({ size, left, top, delay }) {
   )
 }
 
+function StatCounter({ value, label, suffix = '', delay = 0 }) {
+  const numericVal = parseInt(value.replace(/[^0-9]/g, ''), 10) || 0
+  const { count, ref } = useCountUp(numericVal, 2000)
+  const prefix = value.includes('.') ? '' : ''
+  return (
+    <motion.div ref={ref} initial={{ opacity: 0, y: 30, scale: 0.8 }} whileInView={{ opacity: 1, y: 0, scale: 1 }}
+      viewport={{ once: true }} transition={{ delay, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      className="text-center md:text-left group">
+      <span className="block text-2xl font-black text-white group-hover:scale-110 transition-transform inline-block">
+        {value.includes('K') ? `${(count / 10).toFixed(1)}K+` : value.includes('★') ? `${(count / 10).toFixed(1)}★` : `${count}${suffix}`}
+      </span>
+      <span className="text-[11px] text-white/40 uppercase tracking-wider">{label}</span>
+    </motion.div>
+  )
+}
+
 export default function Hero() {
   const ref = useRef(null)
   const [mouse, setMouse] = useState({ x: 0, y: 0 })
@@ -42,6 +59,8 @@ export default function Hero() {
   const textY = useTransform(scrollYProgress, [0, 1], ['0%', '100%'])
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
   const scale = useTransform(scrollYProgress, [0, 0.5], [1, 0.95])
+
+  const { displayed: typedText, done: typingDone } = useTypewriter('Curated products where form meets function in perfect harmony. Designed for modern living.', 30, 1200)
 
   useEffect(() => {
     const handler = (e) => setMouse({ x: (e.clientX / window.innerWidth - 0.5) * 20, y: (e.clientY / window.innerHeight - 0.5) * 20 })
@@ -83,20 +102,18 @@ export default function Hero() {
               New Collection 2024
             </motion.div>
 
-            {/* Glitch Title */}
+            {/* Glitch Title with reveal */}
             <div className="relative mb-6">
-              {['Minimalist'].map((text) => (
-                <div key={text} className="overflow-hidden">
-                  <motion.h1 initial={{ opacity: 0, x: -100, skewX: -15 }} animate={{ opacity: 1, x: 0, skewX: 0 }}
-                    transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                    className="text-5xl sm:text-6xl lg:text-8xl font-black tracking-tighter text-white leading-[0.9]">
-                    {text}
-                  </motion.h1>
-                </div>
-              ))}
               <div className="overflow-hidden">
-                <motion.h1 initial={{ opacity: 0, x: -100, skewX: -15 }} animate={{ opacity: 1, x: 0, skewX: 0 }}
-                  transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                <motion.h1 initial={{ opacity: 0, y: 80, skewX: -15 }} animate={{ opacity: 1, y: 0, skewX: 0 }}
+                  transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+                  className="text-5xl sm:text-6xl lg:text-8xl font-black tracking-tighter text-white leading-[0.9]">
+                  Minimalist
+                </motion.h1>
+              </div>
+              <div className="overflow-hidden">
+                <motion.h1 initial={{ opacity: 0, y: 80, skewX: -15 }} animate={{ opacity: 1, y: 0, skewX: 0 }}
+                  transition={{ duration: 1, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
                   className="text-5xl sm:text-6xl lg:text-8xl font-black tracking-tighter text-white/15 leading-[0.9]">
                   Essentials
                 </motion.h1>
@@ -108,10 +125,14 @@ export default function Hero() {
                 className="absolute inset-0 text-5xl sm:text-6xl lg:text-8xl font-black tracking-tighter text-blue-500/10 leading-[0.9] pointer-events-none select-none" aria-hidden>Minimalist</motion.h1>
             </div>
 
-            <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-              className="text-base sm:text-lg text-white/50 max-w-md mx-auto md:mx-0 leading-relaxed mb-8">
-              Curated products where form meets function in perfect harmony. Designed for modern living.
-            </motion.p>
+            {/* Typewriter subtitle */}
+            <div className="text-base sm:text-lg text-white/50 max-w-md mx-auto md:mx-0 leading-relaxed mb-8 h-16">
+              <span>{typedText}</span>
+              {!typingDone && (
+                <motion.span animate={{ opacity: [1, 0, 1] }} transition={{ duration: 0.8, repeat: Infinity }}
+                  className="inline-block w-0.5 h-5 bg-white/50 ml-0.5 align-middle" />
+              )}
+            </div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}
               className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
@@ -124,15 +145,12 @@ export default function Hero() {
               </MagneticBtn>
             </motion.div>
 
-            {/* Stats */}
+            {/* Stats with scroll-triggered counters */}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.9 }}
               className="grid grid-cols-3 gap-6 max-w-sm mx-auto md:mx-0">
-              {[{ v: '2.5K+', l: 'Customers' }, { v: '500+', l: 'Products' }, { v: '4.9★', l: 'Rating' }].map((s, i) => (
-                <motion.div key={s.l} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 + i * 0.1 }} className="text-center md:text-left">
-                  <span className="block text-xl font-bold text-white">{s.v}</span>
-                  <span className="text-[11px] text-white/40">{s.l}</span>
-                </motion.div>
-              ))}
+              <StatCounter value="2.5K+" label="Customers" delay={1.0} />
+              <StatCounter value="500+" label="Products" delay={1.1} />
+              <StatCounter value="4.9★" label="Rating" delay={1.2} />
             </motion.div>
           </motion.div>
 
@@ -140,8 +158,11 @@ export default function Hero() {
           <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }} className="relative hidden md:flex justify-center">
             <motion.div animate={{ y: [0, -20, 0], rotate: [0, 2, -2, 0] }} transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }} className="relative z-10">
-              {/* Main Card */}
-              <div className="w-80 h-80 lg:w-96 lg:h-96 bg-white/10 backdrop-blur-xl rounded-[2rem] overflow-hidden border border-white/20 shadow-2xl flex items-center justify-center relative">
+              {/* Main Card with 3D tilt */}
+              <motion.div whileHover={{ rotateY: 15, rotateX: -10, scale: 1.05 }}
+                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                style={{ perspective: 1000, transformStyle: 'preserve-3d' }}
+                className="w-80 h-80 lg:w-96 lg:h-96 bg-white/10 backdrop-blur-xl rounded-[2rem] overflow-hidden border border-white/20 shadow-2xl flex items-center justify-center relative">
                 <motion.div animate={{ rotate: 360 }} transition={{ duration: 25, repeat: Infinity, ease: 'linear' }} className="absolute w-60 h-60 border border-white/10 rounded-full" />
                 <motion.div animate={{ rotate: -360 }} transition={{ duration: 35, repeat: Infinity, ease: 'linear' }} className="absolute w-80 h-80 border border-white/5 rounded-full" />
                 <motion.div animate={{ rotateY: [0, 10, -10, 0] }} transition={{ duration: 8, repeat: Infinity }} className="w-36 h-36 bg-gradient-to-br from-gray-300 to-gray-400 rounded-3xl shadow-2xl relative z-10" />
@@ -151,10 +172,10 @@ export default function Hero() {
                     <motion.div animate={{ scale: [1, 1.4, 1] }} transition={{ duration: 2, repeat: Infinity, delay: i * 0.4 }} className="absolute -top-2 left-1/2 w-4 h-4 bg-white/30 rounded-full" />
                   </motion.div>
                 ))}
-              </div>
+              </motion.div>
 
-              {/* Floating Badges */}
-              <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1, type: 'spring' }}
+              {/* Floating Badges with spring */}
+              <motion.div initial={{ opacity: 0, x: 50, rotate: -10 }} animate={{ opacity: 1, x: 0, rotate: 0 }} transition={{ delay: 1, type: 'spring', stiffness: 100 }}
                 className="absolute -top-5 -right-5 bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-xl">
                 <div className="flex items-center gap-3">
                   <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 3, repeat: Infinity }}
@@ -165,7 +186,7 @@ export default function Hero() {
                 </div>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 1.2, type: 'spring' }}
+              <motion.div initial={{ opacity: 0, x: -50, rotate: 10 }} animate={{ opacity: 1, x: 0, rotate: 0 }} transition={{ delay: 1.2, type: 'spring', stiffness: 100 }}
                 className="absolute -bottom-5 -left-5 bg-white/10 backdrop-blur-xl rounded-2xl p-4 border border-white/20 shadow-xl">
                 <div className="flex items-center gap-3">
                   <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}
@@ -178,12 +199,13 @@ export default function Hero() {
             </motion.div>
 
             {/* Glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-[2rem] blur-3xl" />
+            <motion.div animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.8, 0.5] }} transition={{ duration: 4, repeat: Infinity }}
+              className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-[2rem] blur-3xl" />
           </motion.div>
         </div>
       </motion.div>
 
-      {/* Scroll */}
+      {/* Scroll indicator */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className="absolute bottom-8 left-1/2 -translate-x-1/2">
         <motion.div animate={{ y: [0, 10, 0] }} transition={{ duration: 2, repeat: Infinity }} className="flex flex-col items-center gap-2">
           <span className="text-[10px] text-white/30 uppercase tracking-[0.2em]">Scroll</span>
